@@ -15,9 +15,33 @@ import {
 
 import { Picker } from '@react-native-picker/picker';
 
+type Screen = 'menu' | 'add';
+
+type MenuScreenProps = {
+  menuItems: any[];
+  clearForm: () => void;
+  setScreen: (screen: Screen) => void;
+};
+
+type AddMenuScreenProps = {
+  clearForm: () => void;
+  setScreen: (screen: Screen) => void;
+  dishName: string;
+  setDishName: (text: string) => void;
+  description: string;
+  setDescription: (text: string) => void;
+  course: string;
+  setCourse: (text: string) => void;
+  price: string;
+  setPrice: (text: string) => void;
+  errors: Record<string, string>;
+  setErrors: (errors: any) => void;
+  addMenuItem: () => void;
+};
+
 export default function App() {
 
-  const [screen, setScreen] = useState('menu');
+  const [screen, setScreen] = useState<Screen>('menu');
 
   const [menuItems, setMenuItems] = useState<any[]>([]); 
 
@@ -93,144 +117,133 @@ export default function App() {
       ]
     );
   };
-
-  const MenuScreen = () => {
+ if (screen === 'menu') {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+      <MenuScreen 
+        menuItems={menuItems} 
+        clearForm={clearForm} 
+        setScreen={setScreen} 
+      />
+    );
+  }
 
-          <Text style={styles.appTitle}>
-            Chef's Menu Manager
+  return (
+    <AddMenuScreen 
+      clearForm={clearForm}
+      setScreen={setScreen}
+      dishName={dishName}
+      setDishName={setDishName}
+      description={description}
+      setDescription={setDescription}
+      course={course}
+      setCourse={setCourse}
+      price={price}
+      setPrice={setPrice}
+      errors={errors}
+      setErrors={setErrors}
+      addMenuItem={addMenuItem}
+    />
+  );
+}
+ const MenuScreen = ({ menuItems, clearForm, setScreen }: MenuScreenProps) => {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.appTitle}>Chef's Menu Manager</Text>
+        <Text style={styles.subtitle}>Restaurant Menu</Text>
+
+        <Pressable
+          style={styles.primaryButton}
+          onPress={() => {
+            clearForm();
+            setScreen('add');
+          }}
+        >
+          <Text style={styles.primaryButtonText}>+ Add Menu Item</Text>
+        </Pressable>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Menu Items</Text>
+          <Text style={styles.itemCount}>
+            {menuItems.length} item{menuItems.length !== 1 ? 's' : ''}
           </Text>
+        </View>
 
-          <Text style={styles.subtitle}>
-            Restaurant Menu
-          </Text>
-
-          <Pressable
-            style={styles.primaryButton}
-            onPress={() => {
-              clearForm();
-              setScreen('add');
-            }}
-          >
-            <Text style={styles.primaryButtonText}>
-              + Add Menu Item
-            </Text>
-          </Pressable>
-
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              Menu Items
-            </Text>
-
-            <Text style={styles.itemCount}>
-              {menuItems.length} item
-              {menuItems.length !== 1 ? 's' : ''}
+        {menuItems.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🍽️</Text>
+            <Text style={styles.emptyTitle}>No Menu Items</Text>
+            <Text style={styles.emptyText}>
+              No menu items have been added yet. Tap "Add Menu Item" to create your first item.
             </Text>
           </View>
-
-          {menuItems.length === 0 ? (
-
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>
-                🍽️
-              </Text>
-
-              <Text style={styles.emptyTitle}>
-                No Menu Items
-              </Text>
-
-              <Text style={styles.emptyText}>
-                No menu items have been added yet.
-                Tap "Add Menu Item" to create your first item.
-              </Text>
-            </View>
-
-          ) : (
-
-            <FlatList
-              data={menuItems}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.listContainer}
-              renderItem={({ item }) => (
-                <View style={styles.menuCard}>
-
-                  <View style={styles.cardTopRow}>
-
-                    <Text style={styles.dishName}>
-                      {item.name}
-                    </Text>
-
-                    <Text style={styles.price}>
-                      R{item.price}
-                    </Text>
-
-                  </View>
-
-                  <View style={styles.courseBadge}>
-                    <Text style={styles.courseBadgeText}>
-                      {item.course}
-                    </Text>
-                  </View>
-
-                  <Text style={styles.description}>
-                    {item.description}
-                  </Text>
-
-                </View>
-              )}
-            />
-
-          )}
-
-        </View>
-      </SafeAreaView>
-    );
-  };
-
-  const AddMenuScreen = () => {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior={
-            Platform.OS === 'ios'
-              ? 'padding'
-              : undefined
-          }
-        >
-
-          <ScrollView
+        ) : (
+          <FlatList
+            data={menuItems}
+            keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+            contentContainerStyle={styles.listContainer}
+            renderItem={({ item }) => (
+              <View style={styles.menuCard}>
+                <View style={styles.cardTopRow}>
+                  <Text style={styles.dishName}>{item.name}</Text>
+                  <Text style={styles.price}>R{item.price}</Text>
+                </View>
+                <View style={styles.courseBadge}>
+                  <Text style={styles.courseBadgeText}>{item.course}</Text>
+                </View>
+                <Text style={styles.description}>{item.description}</Text>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </SafeAreaView>
+  );
+};
 
-            <View style={styles.headerRow}>
+// 4. MOVED OUTSIDE APP(): The text inputs can now stay continuously targeted
+const AddMenuScreen = ({
+  clearForm,
+  setScreen,
+  dishName,
+  setDishName,
+  description,
+  setDescription,
+  course,
+  setCourse,
+  price,
+  setPrice,
+  errors,
+  setErrors,
+  addMenuItem
+}: AddMenuScreenProps) => {
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerRow}>
+            <Pressable
+              onPress={() => {
+                clearForm();
+                setScreen('menu');
+              }}
+              style={styles.backButton}
+            >
+              <Text style={styles.backButtonText}>←</Text>
+            </Pressable>
+            <Text style={styles.screenTitle}>Add Menu Item</Text>
+          </View>
 
-              <Pressable
-                onPress={() => {
-                  clearForm();
-                  setScreen('menu');
-                }}
-                style={styles.backButton}
-              >
-                <Text style={styles.backButtonText}>
-                  ←
-                </Text>
-              </Pressable>
-
-              <Text style={styles.screenTitle}>
-                Add Menu Item
-              </Text>
-
-            </View>
-
-            <Text style={styles.screenDescription}>
-              Enter the information for the new menu item.
-            </Text>
+          <Text style={styles.screenDescription}>
+            Enter the information for the new menu item.
+          </Text>
 
             {/* DISH NAME */}
 
@@ -437,13 +450,6 @@ export default function App() {
       </SafeAreaView>
     );
   };
-
-  if (screen === 'add') {
-    return <AddMenuScreen />;
-  }
-
-  return <MenuScreen />;
-}
 
 const styles = StyleSheet.create({
 
