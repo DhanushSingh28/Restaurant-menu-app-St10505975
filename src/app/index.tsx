@@ -202,7 +202,6 @@ export default function App() {
   );
 };
 
-// 4. MOVED OUTSIDE APP(): The text inputs can now stay continuously targeted
 const AddMenuScreen = ({
   clearForm,
   setScreen,
